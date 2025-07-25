@@ -81,9 +81,13 @@ const LoginForm: React.FC<Props> = ({ onLogin }) => {
               Log In
             </Button>
             <div className="text-center mt-3">
-              <a href="/register" className="text-muted text-decoration-none">
-                Register new User?
-              </a>
+              <button 
+              onClick={() => navigate('/register')} // Use navigate instead of href
+              className="text-muted text-decoration-none bg-transparent border-0"
+              style={{ cursor: 'pointer' }}
+            >
+              Register new User?
+            </button>
             </div>
           </Form>
         </CardBody>

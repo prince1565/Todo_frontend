@@ -1,9 +1,9 @@
 export interface Todo {
-  _id: string;        // Changed from 'id' to '_id' (Mongoose uses _id)
+  _id: string;
   title: string;
   description: string;
-  status: 'pending' | 'in-progress' | 'completed'; // Changed from 'in progress' to 'in-progress'
-  user: string;       // Changed from 'createdBy' to 'user' (matches your backend)
+  status: 'pending' | 'in-progress' | 'completed'; // Note the hyphen
+  user: string;
   createdAt: string;
-  updatedAt?: string;  // Added optional updatedAt
+  updatedAt?: string;
 }

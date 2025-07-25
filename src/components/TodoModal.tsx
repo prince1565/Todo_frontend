@@ -53,17 +53,34 @@ const TodoModal: React.FC<Props> = ({
     }
   }, [todo, mode]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const todoData = { title, description, status };
-
-    if (mode === "create" && onSubmit) {
-      onSubmit(todoData);
+    // Add validation
+    if (!title) {
+      alert("Title is required");
+      return;
     }
 
-    if (mode === "edit" && onUpdate && todo) {
-      onUpdate({ ...todo, ...todoData });
+    const todoData = {
+      title,
+      description: description || "", // Ensure description exists
+      status: status || "pending", // Default status
+    };
+
+    try {
+      if (mode === "create" && onSubmit) {
+        await onSubmit(todoData); // Make sure to await
+        onClose(); // Close modal on success
+      }
+
+      if (mode === "edit" && onUpdate && todo) {
+        await onUpdate({ ...todo, ...todoData });
+        onClose();
+      }
+    } catch (error) {
+      console.error("Error saving task:", error);
+      // Show error to user
     }
   };
 

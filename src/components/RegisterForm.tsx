@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Button,
   Form,
@@ -18,6 +19,7 @@ const RegisterForm: React.FC<Props> = ({ onRegister }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,9 +92,15 @@ const RegisterForm: React.FC<Props> = ({ onRegister }) => {
               Register
             </Button>
             <div className="text-center mt-3">
-              <a href="/login" className="text-muted text-decoration-none">
-                Already have an account? Login
-              </a>
+              <button 
+              onClick={() => navigate('/login')} // 3. Use navigate instead of href
+              className="text-muted text-decoration-none bg-transparent border-0 p-0"
+              style={{ cursor: 'pointer' }}
+              aria-label="Navigate to login page"
+            >
+              Already have an account? Login
+            </button>
+
             </div>
           </Form>
         </CardBody>

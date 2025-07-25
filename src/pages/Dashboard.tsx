@@ -82,7 +82,15 @@ const Dashboard: React.FC = () => {
           },
         });
 
-        if (!response.ok) throw new Error("Failed to fetch tasks");
+        if (!response.ok) {
+          if (response.status === 401) {
+            // Token is invalid or expired
+            localStorage.removeItem("token"); // Clear the expired token
+            navigate("/login", { replace: true }); // Redirect to login page
+            return;
+          }
+          throw new Error("Failed to fetch task");
+        }
 
         const data = await response.json();
         setTodos(data);
@@ -104,10 +112,22 @@ const Dashboard: React.FC = () => {
           "Content-Type": "application/json",
           "x-auth-token": token || "",
         },
-        body: JSON.stringify(todo),
+        body: JSON.stringify({
+          ...todo,
+          // Add any additional required fields here
+          status: todo.status || "pending", // Ensure status is always provided
+        }),
       });
 
-      if (!response.ok) throw new Error("Failed to create task");
+      if (!response.ok) {
+        if (response.status === 401) {
+          // Token is invalid or expired
+          localStorage.removeItem("token"); // Clear the expired token
+          navigate("/login", { replace: true }); // Redirect to login page
+          return;
+        }
+        throw new Error("Failed to create task");
+      }
 
       // Socket.IO will handle the update via the 'task:created' event
       setModalMode(null);
@@ -131,7 +151,15 @@ const Dashboard: React.FC = () => {
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to update task");
+      if (!response.ok) {
+      if (response.status === 401) {
+        // Token is invalid or expired
+        localStorage.removeItem('token'); // Clear the expired token
+        navigate('/login', { replace: true }); // Redirect to login page
+        return;
+      }
+      throw new Error("Failed to Update task");
+    }
 
       // Socket.IO will handle the update via the 'task:updated' event
       setModalMode(null);
@@ -149,7 +177,15 @@ const Dashboard: React.FC = () => {
         },
       });
 
-      if (!response.ok) throw new Error("Failed to delete task");
+      if (!response.ok) {
+      if (response.status === 401) {
+        // Token is invalid or expired
+        localStorage.removeItem('token'); // Clear the expired token
+        navigate('/login', { replace: true }); // Redirect to login page
+        return;
+      }
+      throw new Error("Failed to delete task");
+    }
 
       // Socket.IO will handle the update via the 'task:deleted' event
     } catch (error) {
