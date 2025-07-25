@@ -8,40 +8,38 @@ import {
   Card,
   CardBody
 } from 'reactstrap';
-import { useNavigate } from 'react-router-dom';
 
 interface Props {
-  onLogin: (token: string, userId: string, username: string) => void;
+  onRegister: () => void;
 }
 
-const LoginForm: React.FC<Props> = ({ onLogin }) => {
+const RegisterForm: React.FC<Props> = ({ onRegister }) => {
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch('http://localhost:5000/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username, email, password }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
+        throw new Error(data.message || 'Registration failed');
       }
 
-      // Login successful
-      onLogin(data.token, data.user.id, data.user.username);
-      navigate('/dashboard');
+      // Registration successful
+      onRegister();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      setError(err instanceof Error ? err.message : 'Registration failed');
     }
   };
 
@@ -49,12 +47,23 @@ const LoginForm: React.FC<Props> = ({ onLogin }) => {
     <div className="vh-100 d-flex align-items-center justify-content-center bg-light">
       <Card style={{ width: '100%', maxWidth: 500 }} className="shadow rounded overflow-hidden">
         <div className="text-white p-4" style={{ backgroundColor: '#9eacf7' }}>
-          <h4 className="mb-0">Welcome Back!</h4>
-          <small>Sign in to continue to Todo List App.</small>
+          <h4 className="mb-0">Create Account</h4>
+          <small>Register to access Todo List App.</small>
         </div>
         <CardBody className="bg-white">
           {error && <div className="alert alert-danger">{error}</div>}
           <Form onSubmit={handleSubmit}>
+            <FormGroup>
+              <Label for="username" className="fw-bold">Username</Label>
+              <Input
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Enter username"
+                required
+              />
+            </FormGroup>
             <FormGroup>
               <Label for="email" className="fw-bold">Email</Label>
               <Input
@@ -78,11 +87,11 @@ const LoginForm: React.FC<Props> = ({ onLogin }) => {
               />
             </FormGroup>
             <Button style={{ backgroundColor: '#455ff3ff', borderColor: '#9eacf7' }} block type="submit" className="fw-bold">
-              Log In
+              Register
             </Button>
             <div className="text-center mt-3">
-              <a href="/register" className="text-muted text-decoration-none">
-                Register new User?
+              <a href="/login" className="text-muted text-decoration-none">
+                Already have an account? Login
               </a>
             </div>
           </Form>
@@ -92,4 +101,4 @@ const LoginForm: React.FC<Props> = ({ onLogin }) => {
   );
 };
 
-export default LoginForm;
+export default RegisterForm;

@@ -1,8 +1,13 @@
 import React from 'react';
-import { Table, Badge } from 'reactstrap';
+import { Table, Badge, Button } from 'reactstrap';
 import { Todo } from '../types/todo';
 
-const TodoList: React.FC<{ todos: Todo[]; onSelect: (todo: Todo) => void }> = ({ todos, onSelect }) => {
+const TodoList: React.FC<{
+  todos: Todo[];
+  onEdit: (todo: Todo) => void;
+  onDelete: (id: string) => void;
+  onView: (todo: Todo) => void;
+}> = ({ todos, onEdit, onDelete, onView }) => {
   return (
     <Table bordered hover responsive>
       <thead>
@@ -11,24 +16,28 @@ const TodoList: React.FC<{ todos: Todo[]; onSelect: (todo: Todo) => void }> = ({
           <th>Description</th>
           <th>Created At</th>
           <th>Status</th>
-          <th>Created By</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
         {todos.map((todo) => (
-          <tr key={todo.id} onClick={() => onSelect(todo)} style={{ cursor: 'pointer' }}>
+          <tr key={todo._id}>
             <td>{todo.title}</td>
-            <td>{todo.description.slice(0, 30)}...</td>
+            <td>{todo.description?.slice(0, 30)}...</td>
             <td>{new Date(todo.createdAt).toLocaleString()}</td>
             <td>
               <Badge color={
                 todo.status === 'pending' ? 'secondary' :
-                todo.status === 'in progress' ? 'warning' : 'success'
+                todo.status === 'in-progress' ? 'warning' : 'success'
               }>
                 {todo.status}
               </Badge>
             </td>
-            <td>{todo.createdBy}</td>
+            <td>
+              <Button color="info" size="sm" onClick={() => onView(todo)}>View</Button>{' '}
+              <Button color="primary" size="sm" onClick={() => onEdit(todo)}>Edit</Button>{' '}
+              <Button color="danger" size="sm" onClick={() => onDelete(todo._id)}>Delete</Button>
+            </td>
           </tr>
         ))}
       </tbody>
