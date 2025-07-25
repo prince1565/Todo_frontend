@@ -1,6 +1,6 @@
 import React from 'react';
 import { Table, Badge } from 'reactstrap';
-import { Todo } from '../../types/todo';
+import { Todo } from '../types/todo';
 
 const TodoList: React.FC<{ todos: Todo[]; onSelect: (todo: Todo) => void }> = ({ todos, onSelect }) => {
   return (

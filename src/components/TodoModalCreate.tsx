@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, ModalHeader, ModalBody, Form, FormGroup, Label, Input, Button } from 'reactstrap';
-import { Todo } from './types/todo';
+import { Todo } from '../types/todo';
 
 interface Props {
   isOpen: boolean;

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Button, Container } from 'reactstrap';
-import { Todo } from '../../types/todo';
+import { Todo } from '../types/todo';
 import TodoList from '../components/TodoList';
 import TodoModalView from '../components/TodoModalView';
-import TodoModalCreate from '../TodoModalCreate';
+import TodoModalCreate from '../components/TodoModalCreate';
 import { v4 as uuidv4 } from 'uuid';
 
 const Dashboard: React.FC = () => {
@@ -21,6 +21,14 @@ const Dashboard: React.FC = () => {
     setCreateOpen(false);
   };
 
+  const handleUpdateStatus = (id: string, newStatus: Todo['status']) => {
+    setTodos(prevTodos =>
+      prevTodos.map(todo =>
+        todo.id === id ? { ...todo, status: newStatus } : todo
+      )
+    );
+  };
+
   return (
     <Container className="py-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
@@ -28,7 +36,7 @@ const Dashboard: React.FC = () => {
         <Button color="success" onClick={() => setCreateOpen(true)}>Create To-Do</Button>
       </div>
       <TodoList todos={todos} onSelect={setSelectedTodo} />
-      <TodoModalView todo={selectedTodo} onClose={() => setSelectedTodo(null)} />
+      <TodoModalView todo={selectedTodo} onClose={() => setSelectedTodo(null)} onUpdateStatus={handleUpdateStatus} />
       <TodoModalCreate isOpen={isCreateOpen} onClose={() => setCreateOpen(false)} onCreate={handleCreate} />
     </Container>
   );
