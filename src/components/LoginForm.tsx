@@ -9,6 +9,7 @@ import {
   CardBody
 } from 'reactstrap';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from "../config";
 
 interface Props {
   onLogin: (token: string, userId: string, username: string) => void;
@@ -23,7 +24,7 @@ const LoginForm: React.FC<Props> = ({ onLogin }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
