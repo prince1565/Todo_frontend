@@ -1,5 +1,3 @@
-/** @format */
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -18,6 +16,7 @@ import {
 import { Todo } from "../types/todo";
 import TodoList from "../components/TodoList";
 import TodoModal from "../components/TodoModal";
+import Loader from "../components/Loader";
 import { FaBars, FaSignOutAlt } from "react-icons/fa";
 import { IconType } from "react-icons";
 import { API_BASE_URL } from "../config";
@@ -31,6 +30,7 @@ const Dashboard: React.FC = () => {
   const [showSidebar, setShowSidebar] = useState(false);
   const [socket, setSocket] = useState<Socket | null>(null);
   const { token, userId, logout } = useAuth();
+  const [loading, setLoading] = useState<boolean>(false);
   const navigate = useNavigate();
 
   // Initialize Socket.IO connection
@@ -75,6 +75,7 @@ const Dashboard: React.FC = () => {
   // Fetch todos on mount
   useEffect(() => {
     const fetchTodos = async () => {
+      setLoading(true);
       try {
         const response = await fetch(`${API_BASE_URL}/api/tasks`, {
           headers: {
@@ -89,22 +90,25 @@ const Dashboard: React.FC = () => {
             navigate("/login", { replace: true }); // Redirect to login page
             return;
           }
-          throw new Error("Failed to fetch task");
+          throw new Error("Failed to fetch tasks");
         }
-
+        
         const data = await response.json();
         setTodos(data);
       } catch (error) {
         console.error("Error fetching tasks:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
     if (token) fetchTodos();
-  }, [token]);
+  }, [token, navigate]);
 
   const handleCreate = async (
     todo: Omit<Todo, "_id" | "createdAt" | "user">
   ) => {
+    setLoading(true);
     try {
       const response = await fetch(`${API_BASE_URL}/api/tasks`, {
         method: "POST",
@@ -114,29 +118,29 @@ const Dashboard: React.FC = () => {
         },
         body: JSON.stringify({
           ...todo,
-          // Add any additional required fields here
-          status: todo.status || "pending", // Ensure status is always provided
+          status: todo.status || "pending",
         }),
       });
 
       if (!response.ok) {
         if (response.status === 401) {
-          // Token is invalid or expired
-          localStorage.removeItem("token"); // Clear the expired token
-          navigate("/login", { replace: true }); // Redirect to login page
+          localStorage.removeItem("token");
+          navigate("/login", { replace: true });
           return;
         }
         throw new Error("Failed to create task");
       }
 
-      // Socket.IO will handle the update via the 'task:created' event
       setModalMode(null);
     } catch (error) {
       console.error("Error creating task:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleUpdate = async (updated: Todo) => {
+    setLoading(true);
     try {
       const response = await fetch(`${API_BASE_URL}/api/tasks/${updated._id}`, {
         method: "PUT",
@@ -152,23 +156,24 @@ const Dashboard: React.FC = () => {
       });
 
       if (!response.ok) {
-      if (response.status === 401) {
-        // Token is invalid or expired
-        localStorage.removeItem('token'); // Clear the expired token
-        navigate('/login', { replace: true }); // Redirect to login page
-        return;
+        if (response.status === 401) {
+          localStorage.removeItem("token");
+          navigate("/login", { replace: true });
+          return;
+        }
+        throw new Error("Failed to update task");
       }
-      throw new Error("Failed to Update task");
-    }
 
-      // Socket.IO will handle the update via the 'task:updated' event
       setModalMode(null);
     } catch (error) {
       console.error("Error updating task:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleDelete = async (id: string) => {
+    setLoading(true);
     try {
       const response = await fetch(`${API_BASE_URL}/api/tasks/${id}`, {
         method: "DELETE",
@@ -178,18 +183,17 @@ const Dashboard: React.FC = () => {
       });
 
       if (!response.ok) {
-      if (response.status === 401) {
-        // Token is invalid or expired
-        localStorage.removeItem('token'); // Clear the expired token
-        navigate('/login', { replace: true }); // Redirect to login page
-        return;
+        if (response.status === 401) {
+          localStorage.removeItem("token");
+          navigate("/login", { replace: true });
+          return;
+        }
+        throw new Error("Failed to delete task");
       }
-      throw new Error("Failed to delete task");
-    }
-
-      // Socket.IO will handle the update via the 'task:deleted' event
     } catch (error) {
       console.error("Error deleting task:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -258,69 +262,73 @@ const Dashboard: React.FC = () => {
         </Col>
       </Row>
 
-      <Row className="m-0">
-        {/* Sidebar */}
-        <Col
-          md={2}
-          className="d-none d-md-block p-0"
-          style={{
-            height: "100vh",
-            overflowY: "auto",
-            backgroundColor: "#f0f4ff",
-          }}
-        >
-          <div
-            className="p-3 border-bottom"
-            style={{ backgroundColor: "#f0f4ff" }}
+      {loading ? (
+        <Loader />
+      ) : (
+        <Row className="m-0">
+          {/* Sidebar */}
+          <Col
+            md={2}
+            className="d-none d-md-block p-0"
+            style={{
+              height: "100vh",
+              overflowY: "auto",
+              backgroundColor: "#f0f4ff",
+            }}
           >
-            <p className="mb-0 text-black fw-bold">Todos by Date</p>
-          </div>
-          <div className="p-3">
-            <ListGroup flush>
-              {Object.entries(groupedTodos).map(([date, todos]) => (
-                <div key={date} className="mb-3">
-                  <h6 className="text-primary fw-bold">{date}</h6>
-                  {todos.map((todo) => (
-                    <ListGroupItem
-                      key={todo._id}
-                      action
-                      onClick={() => {
-                        setActiveTodo(todo);
-                        setModalMode("view");
-                      }}
-                      className="rounded shadow-sm mb-1"
-                    >
-                      {todo.title}
-                    </ListGroupItem>
-                  ))}
-                </div>
-              ))}
-            </ListGroup>
-          </div>
-        </Col>
+            <div
+              className="p-3 border-bottom"
+              style={{ backgroundColor: "#f0f4ff" }}
+            >
+              <p className="mb-0 text-black fw-bold">Todos by Date</p>
+            </div>
+            <div className="p-3">
+              <ListGroup flush>
+                {Object.entries(groupedTodos).map(([date, todos]) => (
+                  <div key={date} className="mb-3">
+                    <h6 className="text-primary fw-bold">{date}</h6>
+                    {todos.map((todo) => (
+                      <ListGroupItem
+                        key={todo._id}
+                        action
+                        onClick={() => {
+                          setActiveTodo(todo);
+                          setModalMode("view");
+                        }}
+                        className="rounded shadow-sm mb-1"
+                      >
+                        {todo.title}
+                      </ListGroupItem>
+                    ))}
+                  </div>
+                ))}
+              </ListGroup>
+            </div>
+          </Col>
 
-        {/* Main Content */}
-        <Col md={10} className="p-4">
-          <div className="d-flex justify-content-between align-items-center mb-4">
-            <h2>To-Do Dashboard</h2>
-            <Button color="success" onClick={() => setModalMode("create")}>
-              Create To-Do
-            </Button>
-          </div>
-          <TodoList
-            todos={todos}
-            onEdit={(todo) => {
-              setActiveTodo(todo);
-              setModalMode("edit");
-            }}
-            onDelete={handleDelete}
-            onView={(todo) => {
-              setActiveTodo(todo);
-              setModalMode("view");
-            }}
-          />
-        </Col>
-      </Row>
+          {/* Main Content */}
+          <Col md={10} className="p-4">
+            <div className="d-flex justify-content-between align-items-center mb-4">
+              <h2>To-Do Dashboard</h2>
+              <Button color="success" onClick={() => setModalMode("create")}>
+                Create To-Do
+              </Button>
+            </div>
+            <TodoList
+              todos={todos}
+              onEdit={(todo) => {
+                setActiveTodo(todo);
+                setModalMode("edit");
+              }}
+              onDelete={handleDelete}
+              onView={(todo) => {
+                setActiveTodo(todo);
+                setModalMode("view");
+              }}
+            />
+          </Col>
+        </Row>
+      )}
 
       {/* Mobile Sidebar */}
       <Offcanvas

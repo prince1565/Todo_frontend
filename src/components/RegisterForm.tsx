@@ -9,6 +9,7 @@ import {
   Card,
   CardBody
 } from 'reactstrap';
+import Loader from './Loader';
 import { API_BASE_URL } from "../config";
 
 interface Props {
@@ -20,10 +21,12 @@ const RegisterForm: React.FC<Props> = ({ onRegister }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState<boolean>(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     try {
       const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: 'POST',
@@ -36,12 +39,14 @@ const RegisterForm: React.FC<Props> = ({ onRegister }) => {
       const data = await response.json();
 
       if (!response.ok) {
+        setLoading(false);
         throw new Error(data.message || 'Registration failed');
       }
 
       // Registration successful
       onRegister();
     } catch (err) {
+      setLoading(false);
       setError(err instanceof Error ? err.message : 'Registration failed');
     }
   };
@@ -89,9 +94,9 @@ const RegisterForm: React.FC<Props> = ({ onRegister }) => {
                 required
               />
             </FormGroup>
-            <Button style={{ backgroundColor: '#455ff3ff', borderColor: '#9eacf7' }} block type="submit" className="fw-bold">
+            {loading ? <Loader /> :<Button style={{ backgroundColor: '#455ff3ff', borderColor: '#9eacf7' }} block type="submit" className="fw-bold">
               Register
-            </Button>
+            </Button>}
             <div className="text-center mt-3">
               <button 
               onClick={() => navigate('/login')} // 3. Use navigate instead of href

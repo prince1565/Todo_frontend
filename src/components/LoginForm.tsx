@@ -10,6 +10,7 @@ import {
 } from 'reactstrap';
 import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from "../config";
+import Loader from './Loader';
 
 interface Props {
   onLogin: (token: string, userId: string, username: string) => void;
@@ -19,10 +20,12 @@ const LoginForm: React.FC<Props> = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+   const [loading, setLoading] = useState<boolean>(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     try {
       const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
@@ -35,6 +38,7 @@ const LoginForm: React.FC<Props> = ({ onLogin }) => {
       const data = await response.json();
 
       if (!response.ok) {
+        setLoading(false);
         throw new Error(data.message || 'Login failed');
       }
 
@@ -42,11 +46,13 @@ const LoginForm: React.FC<Props> = ({ onLogin }) => {
       onLogin(data.token, data.user.id, data.user.username);
       navigate('/dashboard');
     } catch (err) {
+      setLoading(false);
       setError(err instanceof Error ? err.message : 'Login failed');
     }
   };
 
   return (
+    <>
     <div className="vh-100 d-flex align-items-center justify-content-center bg-light">
       <Card style={{ width: '100%', maxWidth: 500 }} className="shadow rounded overflow-hidden">
         <div className="text-white p-4" style={{ backgroundColor: '#9eacf7' }}>
@@ -78,9 +84,9 @@ const LoginForm: React.FC<Props> = ({ onLogin }) => {
                 required
               />
             </FormGroup>
-            <Button style={{ backgroundColor: '#455ff3ff', borderColor: '#9eacf7' }} block type="submit" className="fw-bold">
+            {loading ? <Loader /> : <Button style={{ backgroundColor: '#455ff3ff', borderColor: '#9eacf7' }} block type="submit" className="fw-bold">
               Log In
-            </Button>
+            </Button>}
             <div className="text-center mt-3">
               <button 
               onClick={() => navigate('/register')} // Use navigate instead of href
@@ -94,6 +100,7 @@ const LoginForm: React.FC<Props> = ({ onLogin }) => {
         </CardBody>
       </Card>
     </div>
+    </>
   );
 };
 
